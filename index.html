@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pronóstico del Tiempo — Celeste & Blanco (parcheado)</title>
+  <title>Pronóstico del Tiempo — Celeste & Blanco (iconos bonitos)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -45,7 +45,7 @@
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0; font-family:Poppins, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial;
+      margin:0; font-family:Poppins, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       background: var(--g-sunny); color:var(--text); min-height:100vh;
       display:flex; flex-direction:column; gap:16px; transition: background 600ms ease;
     }
@@ -69,24 +69,23 @@
     .card.today{ border:2px solid var(--accent) }
     .date{ color:#246fa0; font-size:13px; margin-bottom:6px; font-weight:700; letter-spacing:.2px; text-transform:uppercase }
     .big{ display:flex; align-items:center; gap:10px; margin:6px 0 10px }
-    .icon{ width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center }
+    .icon{ width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center }
     .temp{ font-size:26px; font-weight:900; color:#053049 }
-    .desc{ color:var(--muted); font-size:13px; margin-bottom:10px }
+    .desc{ color:#395979; font-size:13px; margin-bottom:10px }
     .row{ display:flex; justify-content:space-between; font-size:13px; margin:4px 0 }
     footer{ text-align:center; color:#246fa0; font-size:12px; padding:0 12px 20px }
-    /* Loader */
     .loader{ display:flex; align-items:center; justify-content:center; gap:10px; padding:18px }
     .cloud{ width:46px; height:26px; border-radius:999px; background:#fff; position:relative; box-shadow: var(--shadow); animation: float 2.2s ease-in-out infinite }
-    .cloud::before,.cloud::after{ content:\"\"; position:absolute; background:#fff; border-radius:999px }
+    .cloud::before,.cloud::after{ content:""; position:absolute; background:#fff; border-radius:999px }
     .cloud::before{ width:28px; height:28px; left:-10px; top:-10px }
     .cloud::after{ width:34px; height:34px; right:-8px; top:-14px }
     @keyframes float{ 0%,100%{ transform: translateY(0)} 50%{ transform: translateY(-6px)} }
-    body[data-theme=\"sunny\"]{ background: var(--g-sunny) }
-    body[data-theme=\"cloudy\"]{ background: var(--g-cloudy) }
-    body[data-theme=\"rain\"]{ background: var(--g-rain) }
-    body[data-theme=\"storm\"]{ background: var(--g-storm) }
-    body[data-theme=\"snow\"]{ background: var(--g-snow) }
-    body[data-theme=\"fog\"]{ background: var(--g-fog) }
+    body[data-theme="sunny"]{ background: var(--g-sunny) }
+    body[data-theme="cloudy"]{ background: var(--g-cloudy) }
+    body[data-theme="rain"]{ background: var(--g-rain) }
+    body[data-theme="storm"]{ background: var(--g-storm) }
+    body[data-theme="snow"]{ background: var(--g-snow) }
+    body[data-theme="fog"]{ background: var(--g-fog) }
   </style>
 </head>
 <body>
@@ -157,29 +156,160 @@
       if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) return 'rain';
       return 'cloudy';
     }
-    function getIconSVG(code){
-      const g = codeToGroup(code);
-      const base = {
-        sunny:`<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M18.4 5.6l1.4-1.4M4.2 19.8l1.4-1.4"/></g></svg>`,
-        cloudy:`<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><g fill="currentColor"><path d="M9 19a5 5 0 1 1 1-9 6 6 0 1 1 9 6H9z"/></g></svg>`,
-        rain:`<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><g fill="currentColor"><path d="M8 18a5 5 0 1 1 1-9 6 6 0 1 1 9 6H8z"/></g><g stroke="currentColor" stroke-linecap="round" stroke-width="2"><path d="M9 21l-1 2M13 21l-1 2M17 21l-1 2"/></g></svg>`,
-        storm:`<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><g fill="currentColor"><path d="M8 18a5 5 0 1 1 1-9 6 6 0 1 1 9 6H8z"/></g><path d="M11 13l-2 4h3l-1 4 4-6h-3l1-2z" fill="currentColor"/></svg>`,
-        snow:`<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><g fill="currentColor"><path d="M8 18a5 5 0 1 1 1-9 6 6 0 1 1 9 6H8z"/></g><g stroke="currentColor" stroke-linecap="round" stroke-width="2"><path d="M9 21v2M13 21v2M17 21v2"/></g></svg>`,
-        fog:`<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><g fill="currentColor"><path d="M8 18a5 5 0 1 1 1-9 6 6 0 1 1 9 6H8z"/></g><g stroke="currentColor" stroke-linecap="round" stroke-width="2"><path d="M6 21h12M5 23h14"/></g></svg>`
+
+    // Iconos SVG bonitos, con gradientes y sombras suaves
+    function getPrettyIconSVG(group){
+      const icons = {
+        sunny: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <radialGradient id="gSun" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#fff7b1"/>
+              <stop offset="60%" stop-color="#ffd166"/>
+              <stop offset="100%" stop-color="#f3b547"/>
+            </radialGradient>
+          </defs>
+          <circle cx="32" cy="32" r="12" fill="url(#gSun)"/>
+          <g stroke="#f7c14a" stroke-width="3" stroke-linecap="round">
+            <line x1="32" y1="6" x2="32" y2="14"/><line x1="32" y1="50" x2="32" y2="58"/>
+            <line x1="6" y1="32" x2="14" y2="32"/><line x1="50" y1="32" x2="58" y2="32"/>
+            <line x1="12" y1="12" x2="18" y2="18"/><line x1="46" y1="46" x2="52" y2="52"/>
+            <line x1="46" y1="18" x2="52" y2="12"/><line x1="12" y1="52" x2="18" y2="46"/>
+          </g>
+        </svg>`,
+        cloudy: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <linearGradient id="gCloud" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e6eef7"/>
+            </linearGradient>
+          </defs>
+          <g filter="url(#f1)">
+            <ellipse cx="28" cy="36" rx="16" ry="10" fill="url(#gCloud)"/>
+            <ellipse cx="40" cy="34" rx="14" ry="9" fill="url(#gCloud)"/>
+            <ellipse cx="20" cy="34" rx="10" ry="7" fill="url(#gCloud)"/>
+          </g>
+        </svg>`,
+        rain: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <linearGradient id="gCloud2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e6eef7"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <ellipse cx="28" cy="30" rx="16" ry="10" fill="url(#gCloud2)"/>
+            <ellipse cx="40" cy="28" rx="14" ry="9" fill="url(#gCloud2)"/>
+            <ellipse cx="20" cy="28" rx="10" ry="7" fill="url(#gCloud2)"/>
+          </g>
+          <g stroke="#56a9ff" stroke-width="3" stroke-linecap="round">
+            <line x1="24" y1="44" x2="22" y2="52"/>
+            <line x1="34" y1="44" x2="32" y2="53"/>
+            <line x1="44" y1="44" x2="42" y2="52"/>
+          </g>
+        </svg>`,
+        storm: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <linearGradient id="gCloud3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f0f4f9"/>
+              <stop offset="100%" stop-color="#dfe8f2"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <ellipse cx="28" cy="28" rx="16" ry="10" fill="url(#gCloud3)"/>
+            <ellipse cx="40" cy="26" rx="14" ry="9" fill="url(#gCloud3)"/>
+            <ellipse cx="20" cy="26" rx="10" ry="7" fill="url(#gCloud3)"/>
+          </g>
+          <polygon points="30,36 24,50 31,50 28,60 42,42 35,42 38,36" fill="#ffcf4a" stroke="#e0ad2a" stroke-width="2"/>
+        </svg>`,
+        snow: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <linearGradient id="gCloud4" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e6eef7"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <ellipse cx="28" cy="30" rx="16" ry="10" fill="url(#gCloud4)"/>
+            <ellipse cx="40" cy="28" rx="14" ry="9" fill="url(#gCloud4)"/>
+            <ellipse cx="20" cy="28" rx="10" ry="7" fill="url(#gCloud4)"/>
+          </g>
+          <g fill="#86c3ff">
+            <circle cx="24" cy="46" r="2"/><circle cx="34" cy="48" r="2"/><circle cx="44" cy="46" r="2"/>
+          </g>
+        </svg>`,
+        fog: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <linearGradient id="gCloud5" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e6eef7"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <ellipse cx="32" cy="26" rx="18" ry="10" fill="url(#gCloud5)"/>
+          </g>
+          <g stroke="#b3c4d6" stroke-width="3" stroke-linecap="round">
+            <line x1="16" y1="40" x2="48" y2="40"/>
+            <line x1="12" y1="46" x2="52" y2="46"/>
+          </g>
+        </svg>`,
+        partly: `
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <defs>
+            <radialGradient id="gSun2" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#fff7b1"/>
+              <stop offset="60%" stop-color="#ffd166"/>
+              <stop offset="100%" stop-color="#f3b547"/>
+            </radialGradient>
+            <linearGradient id="gCloud6" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e6eef7"/>
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="10" fill="url(#gSun2)"/>
+          <ellipse cx="36" cy="34" rx="16" ry="10" fill="url(#gCloud6)"/>
+        </svg>`
       };
-      return base[g] || base.cloudy;
+      return icons[group] || icons.cloudy;
     }
+
+    function getIconByCode(code){
+      // Mapear códigos a grupos con iconos bonitos
+      if([0].includes(code)) return getPrettyIconSVG('sunny');
+      if([1,2].includes(code)) return getPrettyIconSVG('partly');
+      if([3].includes(code)) return getPrettyIconSVG('cloudy');
+      if([45,48].includes(code)) return getPrettyIconSVG('fog');
+      if([71,73,75,77,85,86].includes(code)) return getPrettyIconSVG('snow');
+      if([95,96,99].includes(code)) return getPrettyIconSVG('storm');
+      if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) return getPrettyIconSVG('rain');
+      return getPrettyIconSVG('cloudy');
+    }
+
     function formatDateISO(dStr, tz){
       const d = new Date(dStr + "T00:00:00");
       return d.toLocaleDateString(undefined, { weekday:"short", day:"2-digit", month:"short", timeZone: tz });
     }
-    function setThemeFromCode(code){ document.body.setAttribute('data-theme', codeToGroup(code)); }
+    function setThemeFromCode(code){
+      const g = (code===0||code===1)?'sunny' :
+                ([2,3].includes(code)?'cloudy' :
+                ([45,48].includes(code)?'fog' :
+                ([71,73,75,77,85,86].includes(code)?'snow' :
+                ([95,96,99].includes(code)?'storm' :'rain'))));
+      document.body.setAttribute('data-theme', g);
+    }
+
     function renderLoader(){
       const el = document.createElement('article');
       el.className = 'card loader';
       el.innerHTML = '<span class="cloud" aria-hidden="true"></span> <span>Cargando pronóstico…</span>';
       return el;
     }
+
     function convertTemp(c){ return (localStorage.getItem('unit')||'C')==='C' ? Math.round(c) : Math.round(c*9/5+32); }
 
     function renderDaily(data){
@@ -201,7 +331,7 @@
         el.innerHTML = `
           <div class="date">${formatDateISO(dateStr, timezone)}</div>
           <div class="big">
-            <span class="icon">${getIconSVG(code)}</span>
+            <span class="icon">${getIconByCode(code)}</span>
             <div class="temp">${max}${unitSymbol()} / <span style="color:#6b93b2">${min}${unitSymbol()}</span></div>
           </div>
           <div class="desc">${desc}</div>
@@ -297,18 +427,14 @@
       return _fetchForecast(lat, lon, label);
     };
 
-    // ---- init parcheado ----
+    // init: mostrar BA, luego intentar geo
     (function init(){
-      // 1) Mostrar algo YA (BA)
       fetchForecast(-34.61, -58.38, "Buenos Aires (inicio)");
-      // 2) Intentar geolocalizar y reemplazar si se puede
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           ({coords:{latitude:lat, longitude:lon}})=> fetchForecast(lat, lon, "Tu ubicación"),
           (err)=> console.warn("Geo no disponible/denegada:", err)
         );
-      } else {
-        console.warn("Geolocalización no disponible en este navegador");
       }
     })();
   </script>
