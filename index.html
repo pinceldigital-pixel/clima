@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pronóstico del Tiempo — Celeste & Blanco</title>
+  <style>
+    :root{
+      --bg:#e6f3ff;           /* celeste muy claro */
+      --bg2:#f8fbff;          /* casi blanco */
+      --card:#ffffff;         /* blanco puro */
+      --muted:#4b5563;        /* gris legible */
+      --text:#0b2545;         /* azul profundo */
+      --accent:#00a8e8;       /* celeste vibrante */
+      --accent2:#ffd166;      /* solcito dorado */
+      --chip:#eef6ff;         /* chip suave */
+      --border:#cfe7ff;       /* borde suave */
+      --shadow: 0 8px 30px rgba(0, 94, 184, .12);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 60%, #ffffff 100%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    /* banda sutil tipo bandera */
+    .flag-band{
+      height:10px;
+      background: linear-gradient(90deg, #7ec8ff 0%, #aee1ff 50%, #7ec8ff 100%);
+      box-shadow:0 2px 6px rgba(0,0,0,.04) inset;
+    }
+    header{
+      padding:18px 16px 8px;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:12px;
+      justify-content:center;
+    }
+    .app-title{
+      font-size:clamp(20px, 2.5vw, 28px);
+      font-weight:800;
+      letter-spacing:.2px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .sun{
+      width:22px; height:22px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #ffe8a3 10%, var(--accent2) 60%, #f3b547 100%);
+      box-shadow:0 0 0 4px rgba(255,209,102,.25), 0 0 20px rgba(255,209,102,.35);
+    }
+    .bar{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    }
+    input[type="text"]{
+      background:var(--card);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      min-width:260px;
+      outline:none;
+      box-shadow: var(--shadow);
+    }
+    input::placeholder{ color:#7aa8c7 }
+    button{
+      background:linear-gradient(135deg,var(--accent), #6ed3ff);
+      color:#053049;
+      border:0;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 8px 22px rgba(0,168,232,.25);
+    }
+    button.secondary{
+      background:var(--chip);
+      color:var(--text);
+      border:1px solid var(--border);
+      box-shadow:none;
+    }
+    main{
+      width:min(1100px, 94%);
+      margin:0 auto 36px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    .meta{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
+      padding:0 4px;
+    }
+    .where{
+      font-size:18px; font-weight:700;
+    }
+    .chips{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .chip{
+      background:var(--chip);
+      color:#246fa0;
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:13px;
+    }
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap:14px;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.85));
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: var(--shadow);
+    }
+    .date{
+      color:#246fa0;
+      font-size:13px;
+      margin-bottom:6px;
+      font-weight:700;
+      letter-spacing:.2px;
+      text-transform:uppercase;
+    }
+    .big{
+      display:flex; align-items:center; gap:10px; margin:6px 0 10px;
+    }
+    .icon{
+      font-size:34px;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.08));
+    }
+    .temp{
+      font-size:26px; font-weight:900; color:#053049;
+    }
+    .desc{ color:var(--muted); font-size:13px; margin-bottom:10px}
+    .row{ display:flex; justify-content:space-between; font-size:13px; margin:4px 0}
+    .row b{ color:#0b2545; font-weight:800}
+    footer{
+      text-align:center; color:#246fa0; font-size:12px; padding:0 12px 20px
+    }
+    .sr{ position:absolute; left:-9999px }
+    a { color:#0b6fa6; text-decoration: none; border-bottom:1px dotted #7ec8ff }
+    a:hover{ border-bottom-style: solid }
+  </style>
+</head>
+<body>
+  <div class="flag-band" aria-hidden="true"></div>
+  <header>
+    <div class="app-title"><span class="sun" aria-hidden="true"></span> Pronóstico del Tiempo</div>
+    <div class="bar">
+      <input id="city" type="text" placeholder="Buscar ciudad (ej: Buenos Aires)"/>
+      <button id="search">Buscar</button>
+      <button id="geo" class="secondary">Usar mi ubicación</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="meta">
+      <div class="where" id="place">Cargando ubicación…</div>
+      <div class="chips" id="meta-chips">
+        <span class="chip" id="tz"></span>
+        <span class="chip" id="updated"></span>
+      </div>
+    </section>
+    <section class="cards" id="cards"></section>
+  </main>
+
+  <footer>
+    Tema: <b>Celeste & Blanco</b> • Fuente: <a href="https://open-meteo.com" target="_blank" rel="noreferrer">Open‑Meteo</a> (sin API key).
+  </footer>
+
+  <script>
+    // --- helpers ---
+    const $ = (sel)=>document.querySelector(sel);
+    const WMO = {
+      0:{t:"Despejado",i:"☀️"},
+      1:{t:"Mayormente despejado",i:"🌤️"},
+      2:{t:"Parcialmente nublado",i:"⛅"},
+      3:{t:"Nublado",i:"☁️"},
+      45:{t:"Niebla",i:"🌫️"},
+      48:{t:"Niebla escarchada",i:"🌫️"},
+      51:{t:"Llovizna débil",i:"🌦️"},
+      53:{t:"Llovizna",i:"🌦️"},
+      55:{t:"Llovizna intensa",i:"🌧️"},
+      56:{t:"Llovizna helada débil",i:"🌦️"},
+      57:{t:"Llovizna helada",i:"🌧️"},
+      61:{t:"Lluvia débil",i:"🌦️"},
+      63:{t:"Lluvia",i:"🌧️"},
+      65:{t:"Lluvia intensa",i:"🌧️"},
+      66:{t:"Lluvia helada débil",i:"🌧️"},
+      67:{t:"Lluvia helada",i:"🌧️"},
+      71:{t:"Nieve débil",i:"🌨️"},
+      73:{t:"Nieve",i:"🌨️"},
+      75:{t:"Nieve intensa",i:"❄️"},
+      77:{t:"Granos de nieve",i:"❄️"},
+      80:{t:"Chaparrón débil",i:"🌦️"},
+      81:{t:"Chaparrón",i:"🌧️"},
+      82:{t:"Chaparrón fuerte",i:"⛈️"},
+      85:{t:"Chaparrón de nieve débil",i:"🌨️"},
+      86:{t:"Chaparrón de nieve fuerte",i:"❄️"},
+      95:{t:"Tormenta",i:"⛈️"},
+      96:{t:"Tormenta con granizo débil",i:"⛈️"},
+      99:{t:"Tormenta con granizo fuerte",i:"⛈️"},
+    };
+    function codeToDesc(code){ return (WMO[code]||{t:"—",i:"❓"}); }
+    function formatDateISO(dStr, tz){
+      const d = new Date(dStr + "T00:00:00");
+      return d.toLocaleDateString(undefined, { weekday:"short", day:"2-digit", month:"short", timeZone: tz });
+    }
+    function renderDaily(data){
+      const { daily, timezone } = data;
+      $("#cards").innerHTML = "";
+      $("#tz").textContent = "TZ: " + timezone.replace("_"," ");
+      $("#updated").textContent = "Actualizado: " + new Date().toLocaleTimeString();
+      daily.time.forEach((dateStr, idx)=>{
+        const code = daily.weathercode[idx];
+        const { t, i } = codeToDesc(code);
+        const max = Math.round(daily.temperature_2m_max[idx]);
+        const min = Math.round(daily.temperature_2m_min[idx]);
+        const pop = daily.precipitation_probability_max?.[idx];
+        const wind = Math.round(daily.windspeed_10m_max?.[idx] || 0);
+        const el = document.createElement("article");
+        el.className = "card";
+        el.innerHTML = `
+          <div class="date">${formatDateISO(dateStr, timezone)}</div>
+          <div class="big"><span class="icon">${i}</span><div class="temp">${max}° / <span style="color:#6b93b2">${min}°</span></div></div>
+          <div class="desc">${t}</div>
+          <div class="row"><span>Viento máx</span><b>${wind} km/h</b></div>
+          <div class="row"><span>Prob. precip.</span><b>${(pop??0)}%</b></div>
+        `;
+        $("#cards").appendChild(el);
+      });
+    }
+    async function fetchForecast(lat, lon, placeLabel){
+      $("#place").textContent = placeLabel || `Lat ${lat.toFixed(2)}, Lon ${lon.toFixed(2)}`;
+      const url = new URL("https://api.open-meteo.com/v1/forecast");
+      url.searchParams.set("latitude", lat);
+      url.searchParams.set("longitude", lon);
+      url.searchParams.set("daily", "weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max");
+      url.searchParams.set("timezone", "auto");
+      try{
+        const res = await fetch(url.toString());
+        if(!res.ok) throw new Error("Error de red");
+        const data = await res.json();
+        renderDaily(data);
+      }catch(e){
+        $("#cards").innerHTML = `<div class="card">Ups, no pude traer el pronóstico. ${e.message} 😅</div>`;
+      }
+    }
+    async function geocodeCity(name){
+      const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+      url.searchParams.set("name", name);
+      url.searchParams.set("count", "1");
+      url.searchParams.set("language", "es");
+      url.searchParams.set("format", "json");
+      const res = await fetch(url.toString());
+      if(!res.ok) throw new Error("No se pudo geocodificar la ciudad");
+      const data = await res.json();
+      if(!data.results || !data.results.length) throw new Error("No encontré esa ciudad");
+      const c = data.results[0];
+      return { lat:c.latitude, lon:c.longitude, label:`${c.name}, ${c.admin1 || c.country}` };
+    }
+    $("#search").addEventListener("click", async ()=>{
+      const name = $("#city").value.trim();
+      if(!name) return;
+      try{
+        const {lat, lon, label} = await geocodeCity(name);
+        fetchForecast(lat, lon, label);
+      }catch(e){
+        $("#place").textContent = "Error: " + e.message;
+        $("#cards").innerHTML = `<div class="card">Probá con otra ciudad. 🙏</div>`;
+      }
+    });
+    $("#geo").addEventListener("click", ()=>{
+      if(!navigator.geolocation){
+        fetchForecast(-34.61, -58.38, "Buenos Aires (fallback)");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos)=>{
+          const {latitude:lat, longitude:lon} = pos.coords;
+          fetchForecast(lat, lon, "Tu ubicación");
+        },
+        ()=>fetchForecast(-34.61, -58.38, "Buenos Aires (permiso denegado)")
+      );
+    });
+    (function init(){ $("#geo").click(); })();
+  </script>
+</body>
+</html>
