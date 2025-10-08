@@ -30,6 +30,8 @@
     .switch{ width:64px; height:36px; border-radius:999px; border:none; position:relative; background:#d4d4d4; }
     .switch-ball{ position:absolute; width:28px; height:28px; top:4px; left:4px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.2); transition: transform .2s ease; }
     .dark .switch{ background:#27272a; }
+    .footer{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:14px; font-weight:600; padding:16px 24px; }
+    .sun-ico{ width:24px; height:24px; }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;600&display=swap" rel="stylesheet" />
   <!-- React + Babel (se cachean con el Service Worker) -->
@@ -40,7 +42,6 @@
 <body>
   <div id="root" class="container"></div>
   <script>
-    // Tema
     const isDark = localStorage.getItem("theme") === "dark";
     if(isDark) document.documentElement.classList.add("dark");
     function toggleTheme(){ 
@@ -107,10 +108,6 @@
       const [ciudad, setCiudad] = useState("Buenos Aires, AR");
       const [data, setData] = useState({ hoy: { fechaISO: "", estado: "Soleado", tempC: 0 }, proximos: [] });
 
-      const theme = useMemo(() => ({
-        sub: dark ? "#9ca3af" : "#6b7280",
-      }), [dark]);
-
       function switchClick(){
         toggleTheme();
         setDark(document.documentElement.classList.contains("dark"));
@@ -136,25 +133,13 @@
           setData({ hoy: { fechaISO: todayISO, estado: estadoHoy, tempC: tempHoy }, proximos });
           if(label) setCiudad(label);
         }catch(e){
-          setError("No pude traer datos de Open‑Meteo.");
+          setError("No pude traer datos de Open-Meteo.");
         }finally{
           setLoading(false);
         }
       }
 
-      function useMyLocation(){
-        if(!navigator.geolocation){ setError("Tu navegador no soporta geolocalización."); return; }
-        navigator.geolocation.getCurrentPosition(
-          (pos)=>{
-            const { latitude, longitude } = pos.coords;
-            fetchOpenMeteo({ lat: latitude, lon: longitude, label: "Mi ubicación" });
-          },
-          ()=> setError("No pude obtener tu ubicación."),
-          { enableHighAccuracy:true, timeout: 8000 }
-        );
-      }
-
-      useEffect(()=>{
+      React.useEffect(()=>{
         fetchOpenMeteo({ lat: -34.6037, lon: -58.3816, label: "Buenos Aires, AR" });
       }, []);
 
@@ -168,7 +153,6 @@
               </div>
               <div className="row" style={{gap: '8px'}}>
                 <button className="btn" onClick={()=>fetchOpenMeteo({ lat: -34.6037, lon: -58.3816, label: "Buenos Aires, AR" })}>Actualizar BA</button>
-                <button className="btn" onClick={useMyLocation}>Usar mi ubicación</button>
                 <button className="switch" onClick={switchClick} aria-label="Cambiar tema">
                   <span className="switch-ball" style={{transform: dark ? "translateX(28px)" : "translateX(0)"}}></span>
                 </button>
@@ -205,8 +189,17 @@
               ))}
             </div>
 
-            <div className="px6 pb6">
-              <div className="muted">Fuente: Open‑Meteo (sin API key). La app se puede instalar y funciona offline (caché del último uso).</div>
+            <div className="footer">
+              <svg viewBox="0 0 64 64" class="sun-ico" fill="currentColor" aria-hidden="true">
+                <circle cx="32" cy="32" r="12"></circle>
+                <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
+                  <line x1="32" y1="4" x2="32" y2="14"></line>
+                  <line x1="32" y1="50" x2="32" y2="60"></line>
+                  <line x1="4" y1="32" x2="14" y2="32"></line>
+                  <line x1="50" y1="32" x2="60" y2="32"></line>
+                </g>
+              </svg>
+              Hecho por Daniel
             </div>
           </div>
         </div>
