@@ -1,205 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#48b3ff">
-  <title>Clima</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Clima PWA de Daniel</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png"/>
   <style>
-    :root{ --radius:22px; --shadow:0 10px 30px rgba(0,0,0,.18); }
-    *{ box-sizing:border-box }
-    body{
-      margin:0; font-family:'Poppins',system-ui,Segoe UI,Roboto,Arial;
-      color:#0f2550; display:flex; justify-content:center; min-height:100vh;
-      background: linear-gradient(180deg, #89d3ff, #48b3ff); /* fallback */
-      transition: background 400ms ease;
-    }
-    .app{ width:min(480px,100%); padding:18px; }
-    .top{ display:flex; align-items:center; gap:10px; margin-bottom:12px; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.25); }
-    .city{ font-size:22px; font-weight:900; }
-    .grow{ flex:1 }
-    .icon-btn{ width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,.25); display:grid; place-items:center; cursor:pointer; border:1px solid rgba(255,255,255,.5); }
-    .unit-toggle{ display:flex; gap:8px; }
-    .pill{ padding:10px 14px; border-radius:12px; background:rgba(255,255,255,.25); color:#fff; font-weight:800; cursor:pointer; border:1px solid rgba(255,255,255,.5); }
-    .pill.active{ background:#0f2550; }
-    /* Search with suggestions */
-    .search-wrap{ position:relative; margin-bottom:14px; display:flex; gap:8px; }
-    .inp{ flex:1; padding:14px 16px; border-radius:14px; border:2px solid rgba(255,255,255,.85); background:#fff; font-weight:600; font-size:16px; }
-    .btn{ padding:14px 16px; border-radius:14px; background:#fff; font-weight:800; cursor:pointer; border:2px solid rgba(255,255,255,.85) }
-    .suggest{
-      position:absolute; top:56px; left:0; right:110px; z-index:5;
-      background:#fff; border:2px solid rgba(0,0,0,.08); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.12);
-      overflow:hidden; display:none;
-    }
-    .s-item{ padding:10px 12px; cursor:pointer; border-top:1px solid rgba(0,0,0,.06); font-weight:600 }
-    .s-item:first-child{ border-top:none }
-    .s-item:hover, .s-item.active{ background:#f0f6ff }
-    /* Cards */
-    .hero{ background:rgba(255,255,255,.4); border-radius:var(--radius); padding:18px; text-align:center; box-shadow:var(--shadow); }
-    .hero .icon{ font-size:300px; line-height:0.8; margin:8px 0 0 }
-    .temp{ font-size:100px; font-weight:900; margin:0; color:#fff; text-shadow:0 8px 20px rgba(0,0,0,.25); }
-    .sub{ font-weight:800; color:#eaf6ff; margin-top:4px }
-    .meta{ font-weight:700; color:#003a6b; }
-    .hint{ text-align:center; font-size:12px; opacity:.85; margin-top:6px }
-    .card{ margin-top:14px; background:rgba(255,255,255,.45); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px; backdrop-filter:blur(6px); }
-    .row{ display:grid; grid-template-columns:1fr auto; align-items:center; padding:10px 6px; }
-    .row + .row{ border-top:1px solid rgba(255,255,255,.6); }
-    .day{ display:flex; align-items:center; gap:10px; font-weight:800 }
-    .day .mini{ font-size:42px; }
-    .mm{ font-weight:900 }
+    :root{ --bg:#f6f6f6; --card:#fff; --text:#0a0a0a; --sub:#6b7280; }
+    .dark{ --bg:#0a0a0a; --card:#111; --text:#f5f5f5; --sub:#9ca3af; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Apple Color Emoji','Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
+    .container{ min-height:100svh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card{ width:100%; max-width: 420px; background:var(--card); border:1px solid rgba(0,0,0,.08); border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,.08); overflow:hidden; }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .px6{ padding-left:24px; padding-right:24px; }
+    .pt6{ padding-top:24px; } .pb6{ padding-bottom:24px; }
+    .title{ font-size:18px; font-weight:600; line-height:1; margin:4px 0 0; }
+    .label{ font-size:11px; text-transform:uppercase; letter-spacing:.2em; color:var(--sub); }
+    .center{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding: 8px 24px 8px; min-height: 200px; }
+    .temp{ font-size:104px; font-weight:200; line-height:0.9; }
+    .muted{ color:var(--sub); font-size:13px; }
+    .grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; padding:0 16px 24px; }
+    .pill{ border-radius:16px; padding:12px; text-align:center; }
+    .btn{ font-size:12px; padding:8px 12px; border-radius:999px; border:1px solid rgba(0,0,0,.2); background:transparent; color:var(--text); }
+    .btn:hover{ background: rgba(0,0,0,.06); }
+    .dark .btn{ border-color: #2a2a2a; } .dark .btn:hover{ background:#171717; }
+    .switch{ width:64px; height:36px; border-radius:999px; border:none; position:relative; background:#d4d4d4; }
+    .switch-ball{ position:absolute; width:28px; height:28px; top:4px; left:4px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.2); transition: transform .2s ease; }
+    .dark .switch{ background:#27272a; }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;600&display=swap" rel="stylesheet" />
+  <!-- React + Babel (se cachean con el Service Worker) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-<div class="app">
-  <div class="top">
-    <div id="cityLabel" class="city">Cargando…</div>
-    <div class="grow"></div>
-    <div id="geoBtn" class="icon-btn" title="Usar mi ubicación">📍</div>
-    <div class="unit-toggle">
-      <div id="cBtn" class="pill active">°C</div>
-      <div id="fBtn" class="pill">°F</div>
-    </div>
-  </div>
-
-  <!-- Search with suggestions -->
-  <div class="search-wrap">
-    <input id="q" class="inp" placeholder="Buscar ciudad (ej: Rosario, Madrid, New York)"/>
-    <button id="go" class="btn">Buscar</button>
-    <div id="suggest" class="suggest" role="listbox" aria-label="Sugerencias de ciudad"></div>
-  </div>
-
-  <section class="hero">
-    <div id="heroIcon" class="icon" aria-hidden="true">☀️</div>
-    <h1 class="temp" id="tNow">--°</h1>
-    <div class="sub" id="desc">--</div>
-    <div class="meta" id="minmax">--/-- · ST --°</div>
-    <div class="hint" id="updated">Actualizado: --:--</div>
-  </section>
-
-  <section class="card" id="weekCard"></section>
-</div>
-
-<script>
-  const $ = id => document.getElementById(id);
-  let UNIT = "C"; const toU = v => UNIT==="C" ? Math.round(v) : Math.round(v*9/5+32);
-  const wday = s => new Date(s+"T00:00:00").toLocaleDateString("es-AR",{weekday:"long"}).replace(".","");
-
-  // Fondo según clima (día/noche)
-  function setBackground(kind, isDay=true){
-    const pal = {
-      "sun": isDay ? ["#8fd7ff","#51bbff"] : ["#0f1e36","#091325"],
-      "cloud-sun": isDay ? ["#a6ddff","#69c2ff"] : ["#1a2d4b","#0e1e36"],
-      "cloud": isDay ? ["#b8cbe0","#7ea5c9"] : ["#16233a","#0b162b"],
-      "rain": isDay ? ["#6fb0f0","#487cc7"] : ["#0e2038","#08152a"],
-      "snow": isDay ? ["#d9f3ff","#a6d4ff"] : ["#1e314f","#13243b"],
-      "storm": isDay ? ["#5573a1","#2f4466"] : ["#0b1222","#080f1b"]
-    }[kind] || ["#89d3ff","#48b3ff"];
-    document.body.style.background = `linear-gradient(180deg, ${pal[0]}, ${pal[1]})`;
-    const meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.setAttribute("content", pal[1]);
-  }
-
-  function mapCode(c){
-    if([0].includes(c))return{ico:"☀️",d:"DESPEJADO",k:"sun"};
-    if([1,2].includes(c))return{ico:"🌤️",d:"PARCIAL",k:"cloud-sun"};
-    if([3,45,48].includes(c))return{ico:"☁️",d:"NUBLADO",k:"cloud"};
-    if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(c))return{ico:"🌧️",d:"LLUVIA",k:"rain"};
-    if([71,73,75,77,85,86].includes(c))return{ico:"🌨️",d:"NIEVE",k:"snow"};
-    if([95,96,99].includes(c))return{ico:"⛈️",d:"TORMENTA",k:"storm"};
-    return{ico:"☁️",d:"",k:"cloud"};
-  }
-
-  async function geocode(q, count=5){
-    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=${count}&language=es`);
-    const j=await r.json(); return j.results||[];
-  }
-  async function reverse(lat,lon){
-    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=es`);
-    const j=await r.json(); if(j.results?.length){ const c=j.results[0]; return {name:c.name,lat,lon,tz:c.timezone}; }
-    return {name:"Mi ubicación",lat,lon,tz:"auto"};
-  }
-  async function forecast(lat,lon,tz="auto"){
-    const p=new URLSearchParams({latitude:lat,longitude:lon,timezone:tz,current:"temperature_2m,apparent_temperature,is_day,weather_code",daily:"weather_code,temperature_2m_max,temperature_2m_min"});
-    const r=await fetch("https://api.open-meteo.com/v1/forecast?"+p.toString()); return await r.json();
-  }
-
-  function render(city,data){
-    $("cityLabel").textContent = city.name.toUpperCase();
-    const n=data.current, d=data.daily, mm=mapCode(n.weather_code);
-    $("heroIcon").textContent = mm.ico; $("tNow").textContent = toU(n.temperature_2m)+"°"; $("desc").textContent = mm.d;
-    $("minmax").textContent = `${toU(d.temperature_2m_max[0])}°/${toU(d.temperature_2m_min[0])}° · ST ${toU(n.apparent_temperature)}°`;
-    $("updated").textContent = "Actualizado: " + new Date().toLocaleTimeString("es-AR",{hour:'2-digit',minute:'2-digit'});
-    setBackground(mm.k, !!n.is_day);
-
-    const week=$("weekCard"); week.innerHTML="";
-    for(let i=0; i<Math.min(7,d.time.length); i++){
-      const dayName = i===0? "Hoy" : (i===1? "Mañana" : wday(d.time[i]));
-      const m = mapCode(d.weather_code[i]);
-      const row=document.createElement("div"); row.className="row";
-      row.innerHTML = `<div class="day"><span class="mini">${m.ico}</span><span>${dayName}</span></div>
-                       <div class="mm">${toU(d.temperature_2m_max[i])}°/${toU(d.temperature_2m_min[i])}°</div>`;
-      week.appendChild(row);
+  <div id="root" class="container"></div>
+  <script>
+    // Tema
+    const isDark = localStorage.getItem("theme") === "dark";
+    if(isDark) document.documentElement.classList.add("dark");
+    function toggleTheme(){ 
+      const d = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", d ? "dark" : "light");
+      const ball = document.querySelector(".switch-ball");
+      if(ball){ ball.style.transform = d ? "translateX(28px)" : "translateX(0)"; }
     }
-  }
+  </script>
+  <script type="text/babel" data-type="module">
+    const { useEffect, useMemo, useState } = React;
 
-  async function loadBySelected(city){
-    const w=await forecast(city.latitude || city.lat, city.longitude || city.lon, city.timezone || city.tz || "auto");
-    const c={ name: city.name + (city.country? ", "+city.country:""), lat: (city.latitude||city.lat), lon:(city.longitude||city.lon), tz:(city.timezone||city.tz||"auto") };
-    window._last={city:c,data:w}; render(c,w);
-  }
+    function WeatherIcon({ estado, size=64 }){
+      const color = "currentColor";
+      if(estado === "Soleado"){
+        return (<svg viewBox="0 0 64 64" width={size} height={size} aria-label="Soleado">
+          <circle cx="32" cy="32" r="12" fill={color}/>
+          <g stroke={color} strokeWidth="4" strokeLinecap="round">
+            <line x1="32" y1="4" x2="32" y2="14" />
+            <line x1="32" y1="50" x2="32" y2="60" />
+            <line x1="4" y1="32" x2="14" y2="32" />
+            <line x1="50" y1="32" x2="60" y2="32" />
+            <line x1="12" y1="12" x2="18" y2="18" />
+            <line x1="46" y1="46" x2="52" y2="52" />
+            <line x1="12" y1="52" x2="18" y2="46" />
+            <line x1="46" y1="18" x2="52" y2="12" />
+          </g>
+        </svg>);
+      }
+      if(estado === "Parcialmente nublado"){
+        return (<svg viewBox="0 0 64 64" width={size} height={size} aria-label="Parcialmente nublado">
+          <circle cx="24" cy="24" r="10" fill={color} />
+          <path d="M18 40h26a10 10 0 0 0 0-20c-.9 0-1.7.1-2.5.3A14 14 0 0 0 18 37" fill={color} />
+        </svg>);
+      }
+      if(estado === "Nublado"){
+        return (<svg viewBox="0 0 64 64" width={size} height={size} aria-label="Nublado">
+          <path d="M16 42h30a12 12 0 0 0 0-24c-1.2 0-2.3.2-3.3.5A16 16 0 0 0 16 38" fill={color} />
+        </svg>);
+      }
+      return (<svg viewBox="0 0 64 64" width={size} height={size} aria-label="Lluvia">
+        <path d="M16 36h30a12 12 0 0 0 0-24c-1.2 0-2.3.2-3.3.5A16 16 0 0 0 16 32" fill={color} />
+        <g fill={color}>
+          <path d="M22 44l-2 6h4l-2-6z" />
+          <path d="M32 44l-2 6h4l-2-6z" />
+          <path d="M42 44l-2 6h4l-2-6z" />
+        </g>
+      </svg>);
+    }
 
-  async function loadByName(q){
-    const list = await geocode(q, 1);
-    if(!list.length) { alert("No encontré esa ciudad"); return; }
-    loadBySelected(list[0]);
-  }
-  async function loadByGeo(){
-    if(!navigator.geolocation){ alert("Geo no disponible"); return; }
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      const c=await reverse(pos.coords.latitude,pos.coords.longitude); await loadBySelected(c);
-    }, _=> alert("No pude acceder a tu ubicación"));
-  }
+    function wmoToEstado(code){
+      if(code === 0) return "Soleado";
+      if([1,2].includes(code)) return "Parcialmente nublado";
+      if(code === 3) return "Nublado";
+      if((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || (code >= 95 && code <= 99) || (code >= 61 && code <= 65))
+        return "Lluvia";
+      return "Parcialmente nublado";
+    }
 
-  // Search UX (debounced suggestions)
-  const suggest = $("suggest");
-  let activeIndex = -1, items = [];
-  function closeSuggest(){ suggest.style.display="none"; suggest.innerHTML=""; activeIndex=-1; items=[]; }
-  function openSuggest(options){
-    suggest.innerHTML = options.map((o,i)=>`<div class="s-item" data-i="${i}">${o.name}${o.admin1? ", "+o.admin1:""}${o.country? ", "+o.country:""}</div>`).join("");
-    suggest.style.display = options.length? "block" : "none";
-    items = options;
-  }
-  function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
-  const fetchSuggest = debounce(async (q)=>{
-    if(q.length<2){ closeSuggest(); return; }
-    const options = await geocode(q, 6);
-    openSuggest(options);
-  }, 250);
+    function App(){
+      const [dark, setDark] = useState(document.documentElement.classList.contains("dark"));
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState("");
+      const [ciudad, setCiudad] = useState("Buenos Aires, AR");
+      const [data, setData] = useState({ hoy: { fechaISO: "", estado: "Soleado", tempC: 0 }, proximos: [] });
 
-  $("q").addEventListener("input",(e)=>{ fetchSuggest(e.target.value.trim()); });
-  suggest.addEventListener("click",(e)=>{
-    const el = e.target.closest(".s-item"); if(!el) return;
-    const idx = +el.dataset.i; const choice = items[idx]; $("q").value = `${choice.name}${choice.country? ", "+choice.country:""}`;
-    closeSuggest(); loadBySelected(choice);
-  });
-  $("q").addEventListener("keydown",(e)=>{
-    if(suggest.style.display!=="block") return;
-    const children = [...suggest.children];
-    if(e.key==="ArrowDown"){ activeIndex=(activeIndex+1)%children.length; children.forEach(c=>c.classList.remove("active")); children[activeIndex].classList.add("active"); e.preventDefault(); }
-    if(e.key==="ArrowUp"){ activeIndex=(activeIndex-1+children.length)%children.length; children.forEach(c=>c.classList.remove("active")); children[activeIndex].classList.add("active"); e.preventDefault(); }
-    if(e.key==="Enter" && activeIndex>=0){ children[activeIndex].click(); e.preventDefault(); }
-    if(e.key==="Escape"){ closeSuggest(); }
-  });
-  document.addEventListener("click",(e)=>{ if(!suggest.contains(e.target) && e.target!==$("q")) closeSuggest(); });
+      const theme = useMemo(() => ({
+        sub: dark ? "#9ca3af" : "#6b7280",
+      }), [dark]);
 
-  // Buttons and unit re-render
-  $("go").addEventListener("click",()=>{ const v=$("q").value.trim(); if(v) loadByName(v); });
-  $("geoBtn").addEventListener("click", loadByGeo);
-  $("cBtn").addEventListener("click",()=>{ UNIT="C"; $("cBtn").classList.add("active"); $("fBtn").classList.remove("active"); if(window._last) render(window._last.city, window._last.data); });
-  $("fBtn").addEventListener("click",()=>{ UNIT="F"; $("fBtn").classList.add("active"); $("cBtn").classList.remove("active"); if(window._last) render(window._last.city, window._last.data); });
+      function switchClick(){
+        toggleTheme();
+        setDark(document.documentElement.classList.contains("dark"));
+      }
 
-  // first load
-  loadByName("Buenos Aires");
-</script>
+      async function fetchOpenMeteo({ lat, lon, label }){
+        try{
+          setLoading(true);
+          setError("");
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&timezone=America%2FArgentina%2FBuenos_Aires`;
+          const res = await fetch(url);
+          if(!res.ok) throw new Error("HTTP error");
+          const j = await res.json();
+          const todayISO = j.daily.time[0];
+          const estadoHoy = wmoToEstado(j.current.weather_code);
+          const tempHoy = Math.round(j.current.temperature_2m);
+          const proximos = j.daily.time.slice(1, 4).map((iso, i) => ({
+            fechaISO: iso,
+            estado: wmoToEstado(j.daily.weather_code[i+1]),
+            tempMinC: j.daily.temperature_2m_min[i+1],
+            tempMaxC: j.daily.temperature_2m_max[i+1],
+          }));
+          setData({ hoy: { fechaISO: todayISO, estado: estadoHoy, tempC: tempHoy }, proximos });
+          if(label) setCiudad(label);
+        }catch(e){
+          setError("No pude traer datos de Open‑Meteo.");
+        }finally{
+          setLoading(false);
+        }
+      }
+
+      function useMyLocation(){
+        if(!navigator.geolocation){ setError("Tu navegador no soporta geolocalización."); return; }
+        navigator.geolocation.getCurrentPosition(
+          (pos)=>{
+            const { latitude, longitude } = pos.coords;
+            fetchOpenMeteo({ lat: latitude, lon: longitude, label: "Mi ubicación" });
+          },
+          ()=> setError("No pude obtener tu ubicación."),
+          { enableHighAccuracy:true, timeout: 8000 }
+        );
+      }
+
+      useEffect(()=>{
+        fetchOpenMeteo({ lat: -34.6037, lon: -58.3816, label: "Buenos Aires, AR" });
+      }, []);
+
+      return (
+        <div className="container">
+          <div className="card">
+            <div className="row px6 pt6">
+              <div>
+                <div className="label">Clima</div>
+                <div className="title">{ciudad}</div>
+              </div>
+              <div className="row" style={{gap: '8px'}}>
+                <button className="btn" onClick={()=>fetchOpenMeteo({ lat: -34.6037, lon: -58.3816, label: "Buenos Aires, AR" })}>Actualizar BA</button>
+                <button className="btn" onClick={useMyLocation}>Usar mi ubicación</button>
+                <button className="switch" onClick={switchClick} aria-label="Cambiar tema">
+                  <span className="switch-ball" style={{transform: dark ? "translateX(28px)" : "translateX(0)"}}></span>
+                </button>
+              </div>
+            </div>
+
+            <div className="center">
+              {loading ? (<div className="muted">Cargando…</div>) : (
+                <>
+                  <div style={{ color: "currentColor" }}>
+                    <WeatherIcon estado={data.hoy.estado} size={80} />
+                  </div>
+                  <div className="temp">{Math.round(data.hoy.tempC)}°</div>
+                  <div className="muted">
+                    {data.hoy.fechaISO ? new Date(data.hoy.fechaISO + "T12:00:00").toLocaleDateString("es-AR", { weekday:"long", month:"short", day:"numeric" }) : ""}
+                    {data.hoy.estado ? ` • ${data.hoy.estado}` : ""}
+                  </div>
+                </>
+              )}
+              {error && <div style={{ color: "#ef4444", fontSize: 12 }}>{error}</div>}
+            </div>
+
+            <div className="grid">
+              {data.proximos.map((d, i)=>(
+                <div key={d.fechaISO + i} className="pill">
+                  <div className="label" style={{letterSpacing:'.12em'}}>
+                    {new Date(d.fechaISO+"T12:00:00").toLocaleDateString("es-AR", { weekday:"short" }).replace(".", "").replace(/^\w/, c=>c.toUpperCase())}
+                  </div>
+                  <div style={{ marginTop: 4 }}><WeatherIcon estado={d.estado} size={40}/></div>
+                  <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600 }}>
+                    {Math.round(d.tempMaxC)}° / <span className="muted">{Math.round(d.tempMinC)}°</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="px6 pb6">
+              <div className="muted">Fuente: Open‑Meteo (sin API key). La app se puede instalar y funciona offline (caché del último uso).</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App/>);
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js");
+      });
+    }
+  </script>
 </body>
 </html>
