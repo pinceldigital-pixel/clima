@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App del Clima (Mockup)</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#111827"> <!-- Color oscuro por defecto -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Clima App">
+    
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Carga de la fuente Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Transiciones suaves para mostrar/ocultar vistas */
+        .view-hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            height: 0;
+            overflow: hidden;
+        }
+        .view-visible {
+            opacity: 1;
+            transform: translateY(0);
+            height: auto;
+            transition: opacity 300ms ease, transform 300ms ease, height 0s;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-blue-900 min-h-screen flex items-center justify-center p-4 text-white transition-colors duration-1000">
+
+    <!-- Tarjeta principal del clima -->
+    <div class="glass-card w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8">
+        
+        <!-- Encabezado: Ciudad Y Clima Actual -->
+        <div class="flex justify-between items-start mb-6">
+            
+            <!-- Izquierda: Ciudad (o barra de búsqueda) y descripción -->
+            <div class="flex-1 min-w-0 pr-4">
+                
+                <!-- Vista de Mostrar Ciudad -->
+                <div id="display-view" class="view-visible"> <!-- Clases flex eliminadas de aquí -->
+                    <div class="flex items-center space-x-2"> <!-- Nuevo div contenedor para flex -->
+                        <h1 id="city-name" class="text-2xl font-medium truncate">Cargando...</h1>
+                        <div id="search-icon-container" class="w-6 h-6 text-gray-300 cursor-pointer hover:text-white transition-colors flex-shrink-0">
+                            <!-- SVG de búsqueda se inyecta aquí -->
+                        </div>
+                    </div>
+                    <!-- Descripción movida DENTRO de display-view -->
+                    <p id="current-description" class="text-sm font-light text-gray-200 mt-1">...</p>
+                </div>
+                
+                <!-- Vista de Búsqueda (Oculta por defecto) -->
+                <div id="search-view" class="w-full view-hidden">
+                    <form id="search-form" class="flex items-center space-x-2">
+                        <input id="city-input" type="text" placeholder="Buscar ciudad..." class="flex-1 bg-white/10 text-white placeholder-gray-300 rounded-lg px-4 py-1.5 text-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-0">
+                        <button id="submit-search-btn" type="submit" class="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex-shrink-0">
+                            <!-- SVG de check se inyecta aquí -->
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Mensaje de Error (Oculto por defecto) -->
+                <div id="error-message" class="text-red-400 text-sm mt-2 hidden"></div>
+
+            </div>
+            
+            <!-- Derecha: Icono de Clima Actual -->
+            <div id="current-icon-container" class="w-16 h-16 text-yellow-300 flex-shrink-0">
+                <!-- SVG de clima actual se inyecta aquí -->
+            </div>
+        </div>
+
+        <!-- Temperatura Actual -->
+        <div class="text-center my-8">
+            <h2 id="current-temp" class="text-8xl sm:text-9xl font-extralight tracking-tighter -ml-2">--°</h2>
+        </div>
+
+        <!-- Sensación Térmica -->
+        <div class="text-center mb-10">
+            <p class="text-lg font-light text-gray-200">
+                Sensación térmica: <span id="feels-like" class="font-medium">--°</span>
+            </p>
+        </div>
+
+        <hr class="border-t border-white/20 my-6">
+
+        <!-- Previsión -->
+        <div>
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-300 mb-4">Previsión</h3>
+            <div id="forecast-container" class="flex justify-between space-x-2 sm:space-x-4">
+                <p class="text-xs text-gray-400">Cargando previsión...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Clave de API ---
+        const API_KEY = '847172bb69e142e08a4124632252210'; // Tu clave de API
+        const API_BASE_URL = 'https://api.weatherapi.com/v1/forecast.json';
+
+        // --- Iconos SVG ---
+        const icons = {
+            'soleado': `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>`,
+            'parcialmente-nublado': `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                    <path d="M22 10a5 5 0 0 0-5-5h-1.26a8 8 0 0 0-11.2 3.1"></path>
+                </svg>`,
+            'nublado': `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                </svg>`,
+            'lluvia': `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                    <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                    <line x1="8" y1="19" x2="8" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="23"></line>
+                    <line x1="16" y1="19" x2="16" y2="21"></line>
+                </svg>`,
+            'search': `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>`,
+            'check': `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>`
+        };
+        
+        // --- Nombres de los días de la semana ---
+        const daysOfWeek = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+        // --- Datos Falsos (Mock Data) ---
+        // Se elimina mockWeatherData. Ahora usaremos la API.
+
+        /**
+         * Mapea el código de condición de WeatherAPI a nuestros nombres de iconos.
+         */
+        function mapWeatherIcon(code) {
+            // Códigos de WeatherAPI: https://www.weatherapi.com/docs/weather_conditions.json
+            switch(code) {
+                case 1000: // Sunny
+                    return 'soleado';
+                case 1003: // Partly cloudy
+                    return 'parcialmente-nublado';
+                case 1006: // Cloudy
+                case 1009: // Overcast
+                case 1030: // Mist
+                    return 'nublado';
+                case 1063: // Patchy rain possible
+                case 1180: // Patchy light rain
+                case 1183: // Light rain
+                case 1186: // Moderate rain at times
+                case 1189: // Moderate rain
+                case 1192: // Heavy rain at times
+                case 1195: // Heavy rain
+                case 1150: // Patchy light drizzle
+                case 1153: // Light drizzle
+                case 1168: // Freezing drizzle
+                case 1171: // Heavy freezing drizzle
+                case 1240: // Light rain shower
+                case 1243: // Moderate or heavy rain shower
+                case 1246: // Torrential rain shower
+                    return 'lluvia';
+                case 1087: // Thundery outbreaks possible
+                case 1273: // Patchy light rain with thunder
+                case 1276: // Moderate or heavy rain with thunder
+                    return 'lluvia'; // Podríamos añadir un icono de tormenta, pero usamos lluvia
+                // Agrega más mapeos si es necesario (nieve, etc.)
+                default:
+                    return 'nublado';
+            }
+        }
+
+        /**
+         * Función para obtener la clase de fondo degradado basado en el clima.
+         */
+        function getBackgroundClass(iconName) {
+            let gradient = 'from-gray-900 to-blue-900'; // Fondo por defecto
+            let themeColor = '#111827'; // Color oscuro por defecto
+            
+            switch(iconName) {
+                case 'soleado':
+                    gradient = 'from-blue-400 to-yellow-500'; // Cielo azul a sol brillante
+                    themeColor = '#3b82f6'; // Azul
+                    break;
+                case 'parcialmente-nublado':
+                    gradient = 'from-blue-600 to-gray-700'; // Cielo azul con nubes grises
+                    themeColor = '#4b5563'; // Gris
+                    break;
+                case 'nublado':
+                    gradient = 'from-gray-600 to-gray-800'; // Cielo gris cubierto
+                    themeColor = '#4b5563'; // Gris
+                    break;
+                case 'lluvia':
+                    gradient = 'from-blue-800 to-gray-900'; // Cielo de tormenta oscuro
+                    themeColor = '#1e3a8a'; // Azul oscuro
+                    break;
+            }
+            
+            // Actualizar el theme-color de la PWA
+            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeColorMeta) {
+                themeColorMeta.setAttribute('content', themeColor);
+            }
+            
+            return gradient;
+        }
+
+        /**
+         * Función para obtener el color del icono basado en el tipo de clima.
+         */
+        function getIconColorClass(iconName) {
+            switch(iconName) {
+                case 'soleado':
+                    return 'text-yellow-300';
+                case 'lluvia':
+                    return 'text-blue-300';
+                case 'nublado':
+                case 'parcialmente-nublado':
+                default:
+                    return 'text-gray-200';
+            }
+        }
+
+        /**
+         * Función para poblar la UI con los datos de la API
+         */
+        function updateUI(data) {
+            // Ocultar mensaje de error en caso de éxito
+            document.getElementById('error-message').classList.add('hidden');
+
+            // --- Mapear datos de la API ---
+            const current = data.current;
+            const location = data.location;
+            const forecast = data.forecast.forecastday; // Array de días
+
+            const currentIconName = mapWeatherIcon(current.condition.code);
+
+            // Actualizar datos actuales
+            document.getElementById('city-name').innerText = location.name;
+            document.getElementById('current-temp').innerText = `${Math.round(current.temp_c)}°`;
+            document.getElementById('current-description').innerText = current.condition.text;
+            document.getElementById('feels-like').innerText = `${Math.round(current.feelslike_c)}°`;
+            
+            // --- Actualizar Fondo ---
+            const bodyEl = document.body;
+            const baseClasses = "min-h-screen flex items-center justify-center p-4 text-white transition-colors duration-1000";
+            const newGradient = getBackgroundClass(currentIconName);
+            bodyEl.className = `bg-gradient-to-br ${newGradient} ${baseClasses}`;
+
+            // Actualizar icono actual
+            const iconContainer = document.getElementById('current-icon-container');
+            iconContainer.innerHTML = icons[currentIconName] || icons['nublado'];
+            iconContainer.className = 'w-16 h-16 ' + getIconColorClass(currentIconName);
+
+            // --- Actualizar previsión ---
+            const forecastContainer = document.getElementById('forecast-container');
+            forecastContainer.innerHTML = ''; // Limpiar contenido anterior
+
+            // Empezamos en el índice 1 para obtener los PRÓXIMOS 4 días (índice 0 es hoy)
+            const daysToDisplay = forecast.slice(1, 5); // Tomamos 4 días del futuro
+
+            daysToDisplay.forEach((dayData) => {
+                const day = dayData.day;
+                const date = new Date(dayData.date);
+                const dayName = daysOfWeek[date.getUTCDay()]; // Usar getUTCDay para consistencia con la fecha de la API
+
+                const forecastIconName = mapWeatherIcon(day.condition.code);
+                const iconColor = getIconColorClass(forecastIconName);
+
+                const dayElement = document.createElement('div');
+                dayElement.className = 'flex flex-col items-center space-y-2 flex-1';
+                
+                dayElement.innerHTML = `
+                    <span class="text-sm font-medium text-gray-300">${dayName}</span>
+                    <div class="w-8 h-8 ${iconColor}">
+                        ${icons[forecastIconName] || icons['nublado']}
+                    </div>
+                    <div class="text-sm font-light">
+                        <span class="font-medium">${Math.round(day.maxtemp_c)}°</span>
+                        <span class="text-gray-400">${Math.round(day.mintemp_c)}°</span>
+                    </div>
+                `;
+                forecastContainer.appendChild(dayElement);
+            });
+        }
+        
+        /**
+         * Dibuja un icono de app dinámicamente en un canvas y devuelve una URL Base64.
+         */
+        function drawIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Fondo degradado
+            const bgGradient = ctx.createLinearGradient(0, 0, size, size);
+            bgGradient.addColorStop(0, '#0ea5e9'); // Azul cielo
+            bgGradient.addColorStop(1, '#3b82f6'); // Azul más oscuro
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Nube (círculos blancos) - dibujada primero
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(size * 0.5, size * 0.65, size * 0.25, Math.PI, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.3, size * 0.6, size * 0.18, Math.PI, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.7, size * 0.6, size * 0.2, Math.PI, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Sol (círculo amarillo) - dibujado encima
+            ctx.fillStyle = '#facc15'; // Amarillo sol
+            ctx.beginPath();
+            ctx.arc(size * 0.35, size * 0.35, size * 0.15, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            return canvas.toDataURL('image/png');
+        }
+
+        /**
+         * Muestra un estado de carga en la UI
+         */
+        function showLoadingState() {
+            document.getElementById('city-name').innerText = 'Buscando...';
+            document.getElementById('current-temp').innerText = '--°';
+            document.getElementById('current-description').innerText = '...';
+            document.getElementById('feels-like').innerText = '--°';
+            document.getElementById('forecast-container').innerHTML = '<p class="text-xs text-gray-400">Cargando previsión...</p>';
+            document.getElementById('current-icon-container').innerHTML = '';
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        /**
+         * Muestra un mensaje de error
+         */
+        function showErrorMessage(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.innerText = message;
+            errorEl.classList.remove('hidden');
+            
+            // Volver a la vista de búsqueda si estábamos allí
+            const displayView = document.getElementById('display-view');
+            const searchView = document.getElementById('search-view');
+            displayView.classList.add('view-hidden');
+            displayView.classList.remove('view-visible');
+            searchView.classList.add('view-visible');
+            searchView.classList.remove('view-hidden');
+            document.getElementById('city-input').focus();
+        }
+
+        /**
+         * Obtiene los datos del clima de la API
+         */
+        async function getWeatherData(city) {
+            showLoadingState();
+            
+            // Pedimos 5 días para tener hoy + 4 días de previsión
+            const url = `${API_BASE_URL}?key=${API_KEY}&q=${encodeURIComponent(city)}&days=5&aqi=no&alerts=no&lang=es`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || `Error: ${response.status}`);
+                }
+                const data = await response.json();
+                updateUI(data);
+            } catch (error) {
+                console.error('Error al obtener datos del clima:', error);
+                showErrorMessage(error.message || 'No se pudo encontrar la ciudad.');
+            }
+        }
+
+        /**
+         * Registra el Manifiesto PWA y el Service Worker dinámicamente.
+         */
+        async function registerPWA() {
+            try {
+                const icon192 = drawIcon(192);
+                const icon512 = drawIcon(512);
+                const manifest = {
+                    name: "App del Clima (Mockup)",
+                    short_name: "Clima",
+                    start_url: ".",
+                    display: "standalone",
+                    background_color: "#111827",
+                    theme_color: "#111827",
+                    description: "Un mockup de app del clima.",
+                    icons: [
+                        { src: icon192, sizes: "192x192", type: "image/png" },
+                        { src: icon512, sizes: "512x512", type: "image/png" }
+                    ]
+                };
+                const manifestString = JSON.stringify(manifest);
+                const blob = new Blob([manifestString], { type: 'application/json' });
+                const manifestURL = URL.createObjectURL(blob);
+                const linkEl = document.createElement('link');
+                linkEl.rel = 'manifest';
+                linkEl.href = manifestURL;
+                document.head.appendChild(linkEl);
+
+                if ('serviceWorker' in navigator) {
+                    /* --- DESACTIVADO ---
+                       El registro de un Service Worker desde una 'data:URL'
+                       falla en la mayoría de los navegadores debido a
+                       restricciones de seguridad de ámbito ('scope').
+                       El manifest.json dinámico (arriba) sí funciona.
+                    */
+                    
+                    /*
+                    const swContent = `
+                        const CACHE_NAME = 'weather-app-cache-v1';
+                        const urlsToCache = [
+                            '/',
+                            'https://cdn.tailwindcss.com',
+                            'https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap'
+                        ];
+                        self.addEventListener('install', event => {
+                            event.waitUntil(
+                                caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+                            );
+                        });
+                        self.addEventListener('fetch', event => {
+                            event.respondWith(
+                                caches.match(event.request).then(response => response || fetch(event.request))
+                            );
+                        });
+                    `;
+                    const swURL = 'data:application/javascript,' + encodeURIComponent(swContent);
+                    await navigator.serviceWorker.register(swURL);
+                    */
+                   console.warn("Funcionalidad de Service Worker (offline) desactivada para prevenir error de 'scope' en este entorno.");
+                }
+            } catch (error) {
+                console.error('Error al registrar PWA:', error);
+            }
+        }
+        
+        /**
+         * Simula la búsqueda de una nueva ciudad
+         */
+        function performSearch(cityName) { // Renombrada de performMockSearch
+            // Ahora llama a la función real de la API
+            getWeatherData(cityName);
+        }
+
+        // --- Cargar los datos cuando la página esté lista ---
+        window.onload = function() {
+            // Registrar la PWA
+            registerPWA();
+            
+            // Obtener elementos de la UI
+            const searchIconContainer = document.getElementById('search-icon-container');
+            const submitSearchBtn = document.getElementById('submit-search-btn');
+            const searchForm = document.getElementById('search-form');
+            const cityInput = document.getElementById('city-input');
+            const displayView = document.getElementById('display-view');
+            const searchView = document.getElementById('search-view');
+
+            // --- Poblar iconos estáticos ---
+            searchIconContainer.innerHTML = icons['search'];
+            submitSearchBtn.innerHTML = icons['check'];
+
+            // --- Configurar Event Listeners para la Búsqueda ---
+            
+            // 1. Clic en el icono de búsqueda
+            searchIconContainer.addEventListener('click', () => {
+                displayView.classList.replace('view-visible', 'view-hidden');
+                searchView.classList.replace('view-hidden', 'view-visible');
+                cityInput.value = ''; // Limpiar input
+                cityInput.focus(); // Poner foco en el input
+            });
+
+            // 2. Enviar el formulario (clic en check o 'Enter')
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault(); // Evitar que la página se recargue
+                const newCity = cityInput.value.trim();
+                
+                if (newCity) {
+                    performSearch(newCity);
+                }
+                
+                // Volver a la vista normal (la vista de búsqueda se oculta si la llamada es exitosa)
+                searchView.classList.replace('view-visible', 'view-hidden');
+                displayView.classList.replace('view-hidden', 'view-visible');
+            });
+
+            // Carga inicial de API con una ciudad por defecto
+            performSearch('Buenos Aires');
+        };
+    </script>
+</body>
+</html>
